@@ -3,21 +3,47 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_spaceship(int y) 
+int IS_GAME_RUNNING = 1, 
+    FRAMES = 0, 
+    METEOR_WIDTH = 7,
+    MAXY,
+    MAXX,
+    SHIPX = 2,
+    SHIPY;
+
+void handle_input(int ch) 
 {
-  mvprintw(y/2, 2, "   __");
-  mvprintw(y/2+1, 2, "   \\ \\_____");
-  mvprintw(y/2+2, 2, "###[==_____>");
-  mvprintw(y/2+3, 2, "   /_/  ");
+  switch (ch) {
+    case KEY_UP:
+      SHIPY--; 
+      break;
+    case KEY_DOWN:
+      SHIPY++; 
+      break;
+    case KEY_RIGHT:
+      return; 
+      break;
+    default: 
+      IS_GAME_RUNNING = 0;
+      break;
+  }   
 }
 
-void print_meteor() 
+void print_spaceship() 
 {
-  mvprintw(17, 85, "   ____");
-  mvprintw(18, 85, "__/ c  o\\");
-  mvprintw(19, 85, "| o  *   \\ ");
-  mvprintw(20, 85, "\\     * _/ ");
-  mvprintw(21, 85, " \\_o__ /");
+  mvprintw(SHIPY, SHIPX,   "   __");
+  mvprintw(SHIPY+1, SHIPX, "   \\ \\_____");
+  mvprintw(SHIPY+2, SHIPX, "###[==_____>");
+  mvprintw(SHIPY+3, SHIPX, "   /_/  ");
+}
+
+void print_meteor(int x, int y) 
+{
+  mvprintw(y, x,     "   ____");
+  mvprintw(y + 1, x, "__/ c  o\\");
+  mvprintw(y + 2, x, "| o  *   \\ ");
+  mvprintw(y + 3, x, "\\     * _/ ");
+  mvprintw(y + 4, x, " \\_o__ /");
 }
 
 void print_splash_screen(int x, int y) 
@@ -51,7 +77,7 @@ void print_splash_screen(int x, int y)
   }
 }
 
-void init(int *x, int *y) 
+void init() 
 {
   initscr();
 
@@ -62,7 +88,9 @@ void init(int *x, int *y)
 
   noecho();
 
-  getmaxyx(stdscr, *y, *x);
+  getmaxyx(stdscr, MAXY, MAXX);
+
+  SHIPY = MAXY / 2;
 
   if(has_colors() == FALSE)
 	{	
@@ -80,18 +108,26 @@ void init(int *x, int *y)
 
 int main() 
 {
-  int innerX, innerY;
-
-  init(&innerX, &innerY);
+  init();
 
   attron(COLOR_PAIR(1) | A_BLINK);
 
-  print_splash_screen(innerX, innerY);
+  print_splash_screen(MAXX, MAXY);
 
-  print_spaceship(innerY);
-  print_meteor();
+  while(IS_GAME_RUNNING) {
+    print_spaceship();
 
-  getch();
+    print_meteor(MAXX - (FRAMES + METEOR_WIDTH), 17);
+
+    FRAMES++;
+
+    int ch = getch();
+
+    handle_input(ch);
+
+    clear();
+    refresh();
+  }
 
   endwin();
 }
