@@ -3,38 +3,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-int IS_GAME_RUNNING = 1, 
-    FRAMES = 0, 
-    METEOR_WIDTH = 7,
-    MAXY,
-    MAXX,
-    SHIPX = 2,
-    SHIPY;
+typedef struct _Position {
+  int x, y;
+} Position;
+
+const int METEOR_WIDTH = 10;
+
+int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT;
+
+Position SHIP, METEORS[30];
 
 void handle_input(int ch) 
 {
   switch (ch) {
     case KEY_UP:
-      SHIPY--; 
+      SHIP.y--; 
       break;
     case KEY_DOWN:
-      SHIPY++; 
+      SHIP.y++; 
       break;
     case KEY_RIGHT:
       return; 
       break;
     default: 
-      IS_GAME_RUNNING = 0;
+      return;
       break;
   }   
 }
 
 void print_spaceship() 
 {
-  mvprintw(SHIPY, SHIPX,   "   __");
-  mvprintw(SHIPY+1, SHIPX, "   \\ \\_____");
-  mvprintw(SHIPY+2, SHIPX, "###[==_____>");
-  mvprintw(SHIPY+3, SHIPX, "   /_/  ");
+  mvprintw(SHIP.y, SHIP.x,     "   __");
+  mvprintw(SHIP.y + 1, SHIP.x, "   \\ \\_____");
+  mvprintw(SHIP.y + 2, SHIP.x, "###[==_____>");
+  mvprintw(SHIP.y + 3, SHIP.x, "   /_/  ");
 }
 
 void print_meteor(int x, int y) 
@@ -69,11 +71,13 @@ void print_splash_screen(int x, int y)
 
   int ch = getch();
 
+  
   if(ch == 10) {
     clear();
     refresh();
   } else {
     print_splash_screen(x, y);
+    printw("%d", ch);
   }
 }
 
@@ -82,7 +86,7 @@ void init()
   initscr();
 
   raw();
-  cbreak();
+  halfdelay(2);
 
   keypad(stdscr, true);
 
@@ -90,7 +94,7 @@ void init()
 
   getmaxyx(stdscr, MAXY, MAXX);
 
-  SHIPY = MAXY / 2;
+  SHIP.y = MAXY / 2;
 
   if(has_colors() == FALSE)
 	{	
@@ -114,8 +118,21 @@ int main()
 
   print_splash_screen(MAXX, MAXY);
 
-  while(IS_GAME_RUNNING) {
+  METEORS[0].x = MAXX - (FRAMES + METEOR_WIDTH);
+  METEORS[0].y = 17;
+
+  METEOR_QNT = 1;
+
+  while(IS_GAME_RUNNING) 
+  {
     print_spaceship();
+
+    for(int i = 0; i < METEOR_QNT; ++i) {
+      if(METEORS[i].x == 0) {
+        METEORS[i].x = MAXX - METEOR_WIDTH;
+      }
+      print_meteor(METEORS[i].x--, METEORS[i].y);
+    }
 
     print_meteor(MAXX - (FRAMES + METEOR_WIDTH), 17);
 
