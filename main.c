@@ -7,11 +7,35 @@ typedef struct _Position {
   int x, y;
 } Position;
 
-const int METEOR_WIDTH = 10;
+const int METEOR_WIDTH = 10, METEOR_HEIGHT = 4, SHIP_WIDTH = 12, SHIP_HEIGHT = 3;
 
 int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT;
 
 Position SHIP, METEORS[30];
+
+int check_inferior_colision(int y) 
+{
+  int border = y + METEOR_HEIGHT;
+  if(border >= SHIP.y && border <= SHIP.y + SHIP_HEIGHT)
+    return 1;
+
+  return 0;
+}
+
+int check_superior_colision(int y) 
+{
+  int border = y;
+  if(border <= SHIP.y + SHIP_HEIGHT && border >= SHIP.y)
+    return 1;
+
+  return 0;
+}
+
+void check_colision(Position meteor) 
+{
+  if(meteor.x <= SHIP.x + SHIP_WIDTH && (check_inferior_colision(meteor.y) || check_superior_colision(meteor.y)))
+    IS_GAME_RUNNING = 0;
+}
 
 void handle_input(int ch) 
 {
@@ -71,13 +95,11 @@ void print_splash_screen(int x, int y)
 
   int ch = getch();
 
-  
   if(ch == 10) {
     clear();
     refresh();
   } else {
     print_splash_screen(x, y);
-    printw("%d", ch);
   }
 }
 
@@ -95,13 +117,14 @@ void init()
   getmaxyx(stdscr, MAXY, MAXX);
 
   SHIP.y = MAXY / 2;
+  SHIP.x = 2;
 
   if(has_colors() == FALSE)
-	{	
+  {	
     endwin();
-		printf("Your terminal does not support color\n");
-		exit(1);
-	}
+    printf("Your terminal does not support color\n");
+    exit(1);
+  }
 
   start_color();
 
@@ -125,25 +148,29 @@ int main()
 
   while(IS_GAME_RUNNING) 
   {
-    print_spaceship();
+      print_spaceship();
 
-    for(int i = 0; i < METEOR_QNT; ++i) {
-      if(METEORS[i].x == 0) {
-        METEORS[i].x = MAXX - METEOR_WIDTH;
+      for(int i = 0; i < METEOR_QNT; ++i) {
+        if(METEORS[i].x == 0) {
+          METEORS[i].x = MAXX - METEOR_WIDTH;
+        }
+        print_meteor(METEORS[i].x--, METEORS[i].y);
+
+        mvprintw(0, 2, "%d", METEORS[i].x);
+
+        check_colision(METEORS[i]);
       }
-      print_meteor(METEORS[i].x--, METEORS[i].y);
-    }
 
-    print_meteor(MAXX - (FRAMES + METEOR_WIDTH), 17);
+      print_meteor(MAXX - (FRAMES + METEOR_WIDTH), 17);
 
-    FRAMES++;
+      FRAMES++;
 
-    int ch = getch();
+      int ch = getch();
 
-    handle_input(ch);
+      handle_input(ch);
 
-    clear();
-    refresh();
+      clear();
+      refresh();
   }
 
   endwin();
