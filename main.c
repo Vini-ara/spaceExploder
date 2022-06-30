@@ -2,6 +2,8 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 typedef struct _Position {
   int x, y;
@@ -9,9 +11,25 @@ typedef struct _Position {
 
 const int METEOR_WIDTH = 10, METEOR_HEIGHT = 4, SHIP_WIDTH = 12, SHIP_HEIGHT = 3;
 
-int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT;
+int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT, SPAWN_CHANCE = 5;
 
 Position SHIP, METEORS[30];
+
+void generate_random_meteor() {
+  int random = (int) (((double) rand() / RAND_MAX) * 100.0);  
+
+  if(random <= SPAWN_CHANCE) {
+    METEOR_QNT++;
+
+    for(int i = 0; i < 30; ++i) {
+      if(METEORS[i].x == -1) {
+        METEORS[i].x = MAXX - METEOR_WIDTH;
+        METEORS[i].y = (int) (((double) rand() / RAND_MAX) * 100.0) % MAXY;
+        break;
+      }
+    }
+  }
+}
 
 int check_inferior_colision(int y) 
 {
@@ -131,6 +149,9 @@ void init()
   init_pair(1, COLOR_WHITE, COLOR_BLACK);
 
   curs_set(0);
+
+  for(int i = 0; i < 30; ++i) 
+    METEORS[i].x = -1;
 }
 
 int main() 
@@ -139,39 +160,41 @@ int main()
 
   attron(COLOR_PAIR(1) | A_BLINK);
 
+  srand(time(NULL));
+
   print_splash_screen(MAXX, MAXY);
 
-  METEORS[0].x = MAXX - (FRAMES + METEOR_WIDTH);
-  METEORS[0].y = 17;
-
-  METEOR_QNT = 1;
+  METEOR_QNT = 0;
 
   while(IS_GAME_RUNNING) 
   {
-      print_spaceship();
+    print_spaceship();
 
-      for(int i = 0; i < METEOR_QNT; ++i) {
-        if(METEORS[i].x == 0) {
-          METEORS[i].x = MAXX - METEOR_WIDTH;
-        }
+    generate_random_meteor();
+
+    mvprintw(0, 0, "%d", FRAMES);
+
+    for(int i = 0; i < 30; ++i) {
+      if(METEORS[i].x != -1) {
         print_meteor(METEORS[i].x--, METEORS[i].y);
-
-        mvprintw(0, 2, "%d", METEORS[i].x);
 
         check_colision(METEORS[i]);
       }
 
-      print_meteor(MAXX - (FRAMES + METEOR_WIDTH), 17);
+      if(METEORS[i].x == 0) METEORS[i].x = -1;
+    }
 
-      FRAMES++;
+    FRAMES++;
 
-      int ch = getch();
+    int ch = getch();
 
-      handle_input(ch);
+    handle_input(ch);
 
-      clear();
-      refresh();
+    refresh();
+    clear();
   }
 
   endwin();
+
+  return 0;
 }
