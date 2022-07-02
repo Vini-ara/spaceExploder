@@ -37,7 +37,7 @@ void check_projectile_colision(int x, int y, int index) {
     int projectile_x = PROJECTILES[i].x;
     int projectile_y = PROJECTILES[i].y;
 
-    if(projectile_x >= x && projectile_y >= y) {
+    if(projectile_x >= x && (projectile_y >= y && projectile_y <= y + METEOR_HEIGHT)) {
       PROJECTILES[i].x = -1;
       METEORS[index].x = -1;
       break;
@@ -244,7 +244,7 @@ int main()
       if(METEORS[i].x == 0) METEORS[i].x = -1;
     }
 
-    if(!(FRAMES % 30)) fire_projectile();
+    if(!(FRAMES % FIRE_RATE)) fire_projectile();
 
     for(int i = 0; i < 100; ++i) {
       if(PROJECTILES[i].x != -1) {
