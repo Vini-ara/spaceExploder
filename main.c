@@ -12,7 +12,7 @@ typedef struct _Position {
 /* Global Variabales */
 const int METEOR_WIDTH = 10, METEOR_HEIGHT = 4, SHIP_WIDTH = 12, SHIP_HEIGHT = 3;
 
-int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT, SPAWN_CHANCE = 5, FIRE_RATE = 10;
+int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT, SPAWN_CHANCE = 20, FIRE_RATE = 30;
 
 Position SHIP, METEORS[30], PROJECTILES[100];
 
@@ -65,7 +65,7 @@ void generate_random_meteor() {
     for(int i = 0; i < 30; ++i) {
       if(METEORS[i].x == -1) {
         METEORS[i].x = MAXX - METEOR_WIDTH;
-        METEORS[i].y = (int) (((double) rand() / RAND_MAX) * 100.0) % MAXY;
+        METEORS[i].y = (int) (((double) rand() / RAND_MAX) * 100.0) % (MAXY - METEOR_HEIGHT);
         break;
       }
     }
@@ -106,10 +106,12 @@ void handle_input(int ch)
 {
   switch (ch) {
     case KEY_UP:
-      SHIP.y--; 
+      if(SHIP.y > 0) SHIP.y--; 
+      return;
       break;
     case KEY_DOWN:
-      SHIP.y++; 
+      if(SHIP.y < (MAXY - METEOR_HEIGHT)) SHIP.y++;
+      return;
       break;
     case KEY_RIGHT:
       return; 
@@ -235,8 +237,10 @@ int main()
 
     for(int i = 0; i < 30; ++i) {
       if(METEORS[i].x != -1) {
-        print_meteor(METEORS[i].x--, METEORS[i].y);
+        print_meteor(METEORS[i].x, METEORS[i].y);
 
+        METEORS[i].x -= 5;
+        
         check_ship_colision(METEORS[i]);
         check_projectile_colision(METEORS[i].x, METEORS[i].y, i);
       }
