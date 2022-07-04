@@ -12,9 +12,37 @@ typedef struct _Position {
 /* Global Variabales */
 const int METEOR_WIDTH = 10, METEOR_HEIGHT = 4, SHIP_WIDTH = 12, SHIP_HEIGHT = 3;
 
-int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT, SPAWN_CHANCE = 20, FIRE_RATE = 30;
+int IS_GAME_RUNNING = 1, FRAMES = 0, MAXY, MAXX, METEOR_QNT, SPAWN_CHANCE = 10, FIRE_RATE = 30, METEOR_SPEED = 1;
 
 Position SHIP, METEORS[30], PROJECTILES[100];
+
+void increase_dificulty() {
+  if(FRAMES > 250) {
+    SPAWN_CHANCE = 15;
+  }
+  if(FRAMES > 500) {
+    METEOR_SPEED = 2;
+    FIRE_RATE = 20;
+  }
+  if(FRAMES > 750) {
+    SPAWN_CHANCE = 20;
+    FIRE_RATE = 15;
+  }
+  if(FRAMES > 1000) {
+    METEOR_SPEED = 3;
+  }
+  if(FRAMES > 1250) {
+    SPAWN_CHANCE = 25; 
+    FIRE_RATE = 10;
+  }
+  if(FRAMES > 1500) {
+    SPAWN_CHANCE = 30;
+  }
+}
+
+void print_score() {
+  mvprintw(0, 0, "Score: %d", FRAMES);
+}
 
 /*
  * generates a new projectile at the first free position of the projectiles vector
@@ -116,6 +144,8 @@ void handle_input(int ch)
     case KEY_RIGHT:
       return; 
       break;
+    case 27:
+      IS_GAME_RUNNING = 0; 
     default: 
       return;
       break;
@@ -239,7 +269,7 @@ int main()
       if(METEORS[i].x != -1) {
         print_meteor(METEORS[i].x, METEORS[i].y);
 
-        METEORS[i].x -= 5;
+        METEORS[i].x -= METEOR_SPEED;
         
         check_ship_colision(METEORS[i]);
         check_projectile_colision(METEORS[i].x, METEORS[i].y, i);
@@ -258,6 +288,9 @@ int main()
 
       if(PROJECTILES[i].x == MAXX) PROJECTILES[i].x = -1;
     }
+
+    increase_dificulty();
+    print_score();
 
     FRAMES++;
 
